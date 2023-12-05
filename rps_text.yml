@@ -1,0 +1,29 @@
+en:
+    welcome:
+        'Welcome to Rock, Paper, Scissors, Lizard, Spock!'
+        
+    rules: |
+        
+        Rock beats scissors and lizard
+        Paper beats rock and spock
+        Scissors beats paper and lizard
+        Lizard beats paper and spock
+        Spock beats scissors and rock
+         
+    astroboy_info: |
+        Astro Boy loves people and wants to protect them at all costs.
+        So much so that he may cheat to let you win every round.
+         
+    bender_info: |
+        Bender bet money on this game and isn't afraid to play dirty."
+         
+    walle_info: |
+        Wall-E is sweet and simple. Go easy on him.
+         
+    rubocop_info: |
+        Rubocop is a stickler for the rules.
+        It refuses to use it's abilities to cheat.
+         
+    goodbye: 'Thanks for playing Rock, Paper, Scissors, Lizard, Spock! Bye!'
+    
+    
