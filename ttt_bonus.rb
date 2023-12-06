@@ -1,55 +1,39 @@
+require 'yaml'
+MESSAGES = YAML.load_file('ttt_text.yml')
+
 module Displayable
-  WINNING_ROUNDS = 3
-
   def display_welcome_message
-    puts "Welcome to Tic Tac Toe!"
-    puts "First to win #{WINNING_ROUNDS} rounds wins the game!"
-    puts ''
+    puts MESSAGES['welcome']
   end
 
-  def display_board
-    puts "#{human.name}: #{human.marker}"
-    puts "#{computer.name}: #{computer.marker}"
-    board.draw
-    puts ''
+  def display_round_winner_is
+    puts MESSAGES['round_winner_is']
   end
 
-  def display_score
-    puts "#{human.name}'s score: #{human.score}"
-    puts "#{computer.name}'s score: #{computer.score}"
-    puts ''
-  end
-
-  def display_round_results
-    display_board
-    display_score
-    case board.winning_marker
-    when human.marker
-      puts "#{human.name} won!"
-    when computer.marker
-      puts "#{computer.name} won!"
-    else
-      puts "It's a tie."
-    end
-  end
-
-  def display_grand_winner
-    puts "#{grand_winner} won #{WINNING_ROUNDS} rounds and wins the game!"
-    puts ''
+  def display_tie
+    puts MESSAGES['tie']
   end
 
   def display_play_again_message
-    puts "Let's play again!"
-    puts ''
+    puts MESSAGES['lets_play_again']
   end
 
   def display_goodbye_message
-    puts 'Thanks for playing Tic Tac Toe, bye!'
-    puts ''
+    puts MESSAGES['goodbye']
+  end
+
+  def clear_screen_and_display_board
+    clear
+    display_board
+  end
+
+  def clear
+    system 'clear'
   end
 end
 
 module Formatable
+  # prompt will be used only for questions not all text
   def prompt(message)
     puts "==> #{message}"
     puts ''
@@ -65,10 +49,6 @@ module Formatable
       arr[-1] = "#{word} #{arr[-1]}"
       arr.join(delimiter)
     end
-  end
-
-  def clear
-    system 'clear'
   end
 end
 
@@ -185,37 +165,39 @@ end
 
 class Human < Player
   def choose_name
-    prompt "What's your name?: "
+    prompt MESSAGES['ask_for_name']
     input = nil
     loop do
       input = gets.chomp
       break unless input.empty?
 
-      prompt 'Please type your name: '
+      prompt MESSAGES['invalid']
     end
     self.name = input
   end
 
   def choose_marker
-    prompt 'Choose a marker from A-Z: '
+    prompt MESSAGES['ask_for_marker']
     input = nil
     loop do
       input = gets.chomp
       break if ('A'..'Z').include?(input)
 
-      prompt 'Sorry, invalid input.'
+      prompt MESSAGES['invalid']
     end
     self.marker = input
   end
 
   def choose_move(board)
-    prompt "Choose a square (#{board.joiner(board.unmarked_keys)}):"
+    prompt MESSAGES['ask_for_square']
+
+    puts "(#{board.joiner(board.unmarked_keys)}):"
     square = nil
     loop do
       square = gets.chomp.to_i
       break if board.unmarked_keys.include?(square)
 
-      puts "Sorry that's not a valid choice."
+      prompt MESSAGES['invalid']
     end
     board[square] = marker
   end
@@ -239,13 +221,13 @@ class Computer < Player
   end
 
   def set_difficulty
-    prompt "Choose a difficulty: easy, medium, hard (e/m/h): "
+    prompt MESSAGES['ask_for_difficulty']
     input = nil
     loop do
       input = gets.chomp
       break if ['e', 'm', 'h'].include?(input)
 
-      prompt 'Sorry, invalid input.'
+      prompt MESSAGES['invalid']
     end
     self.difficulty = input
   end
@@ -303,7 +285,7 @@ class TTTGame
   include Formatable
   WINNING_ROUNDS = 3
   attr_reader :board, :human, :computer
-  attr_accessor :current_marker, :grand_winner
+  attr_accessor :current_marker, :round_winner, :grand_winner
 
   def initialize
     @board = Board.new
@@ -314,10 +296,32 @@ class TTTGame
   def play
     clear
     display_welcome_message
+    display_points_to_win
     set_up_game
     main_game
     clear
     display_goodbye_message
+  end
+
+  def display_points_to_win
+    puts "First to win #{TTTGame::WINNING_ROUNDS} rounds wins the game!"
+  end
+
+  def set_up_game
+    gather_human_preferences
+    computer.assign_marker(human.marker)
+    clear
+    display_opponent_info
+  end
+
+  def gather_human_preferences
+    human.choose_name
+    human.choose_marker
+    computer.set_difficulty
+  end
+
+  def display_opponent_info
+    puts MESSAGES['playing_against'] + "#{computer.name}!"
   end
 
   # rubocop:disable Metrics/MethodLength
@@ -329,29 +333,12 @@ class TTTGame
           display_grand_winner
           break
         end
-        play_next_round? ? reset_round : break
+        reset_round if ready_next_round?
       end
       play_again? ? reset_game : break
     end
   end
   # rubocop:enable Metrics/MethodLength
-
-  def set_up_game
-    gather_human_preferences
-    computer.assign_marker(human.marker)
-    clear
-  end
-
-  def gather_human_preferences
-    human.choose_name
-    human.choose_marker
-    computer.set_difficulty
-  end
-
-  def clear_screen_and_display_board
-    clear
-    display_board
-  end
 
   def play_round
     setup_round
@@ -369,13 +356,13 @@ class TTTGame
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/MethodLength
   def choose_first_player
-    prompt 'Would you like to go 1st or 2nd? (1 or 2): '
+    prompt MESSAGES['ask_who_goes_first']
     input = nil
     loop do
       input = gets.chomp
       break if ['1', '2'].include?(input)
 
-      prompt "Sorry, invalid input."
+      prompt MESSAGES['invalid']
     end
     case input
     when '1' then self.current_marker = human.marker
@@ -420,6 +407,38 @@ class TTTGame
     end
   end
 
+  def display_round_results
+    display_board
+    display_score
+    round_winner? ? display_round_winner : display_tie
+  end
+
+  def display_board
+    puts "#{human.name}: #{human.marker}"
+    puts "#{computer.name}: #{computer.marker}"
+    board.draw
+    puts ''
+  end
+
+  def display_score
+    puts "#{human.name}'s score: #{human.score}"
+    puts "#{computer.name}'s score: #{computer.score}"
+    puts ''
+  end
+
+  def round_winner?
+    if board.winning_marker == human.marker
+      self.round_winner = human.name.to_s
+    elsif board.winning_marker == computer.marker
+      self.round_winner = computer.name.to_s
+    end
+  end
+
+  def display_round_winner
+    display_round_winner_is
+    puts round_winner
+  end
+
   def detect_grand_winner
     if human.score == WINNING_ROUNDS
       self.grand_winner = human.name
@@ -428,14 +447,19 @@ class TTTGame
     end
   end
 
-  def play_next_round?
-    prompt "Would you like to play the next round? (y/n): "
+  def display_grand_winner
+    puts "#{grand_winner} won #{TTTGame::WINNING_ROUNDS} rounds!"
+    puts grand_winner.to_s + MESSAGES['grand_winner']
+  end
+
+  def ready_next_round?
+    prompt MESSAGES['ask_play_next_round']
     input = nil
     loop do
       input = gets.chomp
-      break if ['y', 'n'].include?(input)
+      break if input == 'y'
 
-      prompt "Sorry, invalid input."
+      prompt MESSAGES['invalid']
     end
     input == 'y'
   end
@@ -446,13 +470,13 @@ class TTTGame
   end
 
   def play_again?
-    prompt "Would you like to play again? (y/n): "
+    prompt MESSAGES['ask_play_again']
     input = nil
     loop do
       input = gets.chomp
       break if ['y', 'n'].include?(input)
 
-      prompt "Sorry, invalid input."
+      prompt MESSAGES['invalid']
     end
     input == 'y'
   end
