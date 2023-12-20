@@ -1,0 +1,28 @@
+welcome: 'Welcome to Twenty-One!'
+
+read_rules: 'Do you need to read the rules? (y/n)'
+
+rules:  |
+    21 is a simplified version of Blackjack!
+    
+    Each player is dealt 2 cards. The goal is to get as close to 21 as you
+    can without going over. 2-10 cards are worth face value, Jacks, Queens, and
+    Kings are 10, and Aces are either 1 or 11 depending on the rest of the hand.
+    You can see both of your cards and one of the dealers cards. The dealer has
+    to hit (get dealt another card) until they reach 17. You can choose to hit
+    or stay (not get another card) at any point. If either player busts (goes
+    over 21) the other player wins the hand. If neither player busts then the
+    player closest to 21 wins the hand.
+    
+    Enter a space to start!'
+    
+invalid: 'Sorry, invalid input.'
+
+hit_or_stay: 'Would you like to hit or stay? (h/s)'
+
+next_round: 'Enter the space key when ready for the next round'
+
+play_again: 'Would you like to play again? (y/n)'
+
+
+goodbye: 'Thanks for playing Twenty-One, bye!'
